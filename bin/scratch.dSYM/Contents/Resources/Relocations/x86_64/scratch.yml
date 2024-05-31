@@ -1,0 +1,58 @@
+---
+triple:          'x86_64-apple-darwin'
+binary-path:     'bin/scratch'
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _pythag, symObjAddr: 0x0, symBinAddr: 0x100001170, symSize: 0xF0 }
+  - { offsetInCU: 0x7B, offset: 0x7B, size: 0x8, addend: 0x0, symName: _pythag, symObjAddr: 0x0, symBinAddr: 0x100001170, symSize: 0xF0 }
+  - { offsetInCU: 0xCD, offset: 0xCD, size: 0x8, addend: 0x0, symName: _sign, symObjAddr: 0xF0, symBinAddr: 0x100001260, symSize: 0xD0 }
+  - { offsetInCU: 0x103, offset: 0x103, size: 0x8, addend: 0x0, symName: _tqli, symObjAddr: 0x1C0, symBinAddr: 0x100001330, symSize: 0x530 }
+  - { offsetInCU: 0x21D, offset: 0x21D, size: 0x8, addend: 0x0, symName: _show_2D, symObjAddr: 0x6F0, symBinAddr: 0x100001860, symSize: 0x90 }
+  - { offsetInCU: 0x287, offset: 0x287, size: 0x8, addend: 0x0, symName: _create_identity, symObjAddr: 0x780, symBinAddr: 0x1000018F0, symSize: 0xF0 }
+  - { offsetInCU: 0x2D9, offset: 0x2D9, size: 0x8, addend: 0x0, symName: _evalue_hash, symObjAddr: 0x870, symBinAddr: 0x1000019E0, symSize: 0x40 }
+  - { offsetInCU: 0x32B, offset: 0x32B, size: 0x8, addend: 0x0, symName: _evalue_compare, symObjAddr: 0x8B0, symBinAddr: 0x100001A20, symSize: 0x80 }
+  - { offsetInCU: 0x38B, offset: 0x38B, size: 0x8, addend: 0x0, symName: _compare_doubles, symObjAddr: 0x930, symBinAddr: 0x100001AA0, symSize: 0x70 }
+  - { offsetInCU: 0x3DD, offset: 0x3DD, size: 0x8, addend: 0x0, symName: _free_square_matrix, symObjAddr: 0x9A0, symBinAddr: 0x100001B10, symSize: 0x50 }
+  - { offsetInCU: 0x42B, offset: 0x42B, size: 0x8, addend: 0x0, symName: _sort_e_vectors, symObjAddr: 0x9F0, symBinAddr: 0x100001B60, symSize: 0x170 }
+  - { offsetInCU: 0x26, offset: 0x55A, size: 0x8, addend: 0x0, symName: _hashmap_set_allocator, symObjAddr: 0x0, symBinAddr: 0x100001CD0, symSize: 0x30 }
+  - { offsetInCU: 0x3F, offset: 0x573, size: 0x8, addend: 0x0, symName: ___malloc, symObjAddr: 0x6BC0, symBinAddr: 0x100006000, symSize: 0x0 }
+  - { offsetInCU: 0x82, offset: 0x5B6, size: 0x8, addend: 0x0, symName: ___free, symObjAddr: 0x6BC8, symBinAddr: 0x100006008, symSize: 0x0 }
+  - { offsetInCU: 0xA3, offset: 0x5D7, size: 0x8, addend: 0x0, symName: ___realloc, symObjAddr: 0x6BD0, symBinAddr: 0x100006010, symSize: 0x0 }
+  - { offsetInCU: 0x13A, offset: 0x66E, size: 0x8, addend: 0x0, symName: _hashmap_set_allocator, symObjAddr: 0x0, symBinAddr: 0x100001CD0, symSize: 0x30 }
+  - { offsetInCU: 0x16C, offset: 0x6A0, size: 0x8, addend: 0x0, symName: _hashmap_set_grow_by_power, symObjAddr: 0x30, symBinAddr: 0x100001D00, symSize: 0x60 }
+  - { offsetInCU: 0x19E, offset: 0x6D2, size: 0x8, addend: 0x0, symName: _hashmap_set_load_factor, symObjAddr: 0x90, symBinAddr: 0x100001D60, symSize: 0xD0 }
+  - { offsetInCU: 0x1D0, offset: 0x704, size: 0x8, addend: 0x0, symName: _clamp_load_factor, symObjAddr: 0x160, symBinAddr: 0x100001E30, symSize: 0xB0 }
+  - { offsetInCU: 0x206, offset: 0x73A, size: 0x8, addend: 0x0, symName: _hashmap_new_with_allocator, symObjAddr: 0x210, symBinAddr: 0x100001EE0, symSize: 0x470 }
+  - { offsetInCU: 0x2F5, offset: 0x829, size: 0x8, addend: 0x0, symName: _hashmap_new, symObjAddr: 0x680, symBinAddr: 0x100002350, symSize: 0x80 }
+  - { offsetInCU: 0x37F, offset: 0x8B3, size: 0x8, addend: 0x0, symName: _hashmap_clear, symObjAddr: 0x700, symBinAddr: 0x1000023D0, symSize: 0x1C0 }
+  - { offsetInCU: 0x3CD, offset: 0x901, size: 0x8, addend: 0x0, symName: _free_elements, symObjAddr: 0x8C0, symBinAddr: 0x100002590, symSize: 0xA0 }
+  - { offsetInCU: 0x429, offset: 0x95D, size: 0x8, addend: 0x0, symName: _hashmap_set_with_hash, symObjAddr: 0x960, symBinAddr: 0x100002630, symSize: 0x330 }
+  - { offsetInCU: 0x4CB, offset: 0x9FF, size: 0x8, addend: 0x0, symName: _clip_hash, symObjAddr: 0xC90, symBinAddr: 0x100002960, symSize: 0x20 }
+  - { offsetInCU: 0x4F3, offset: 0xA27, size: 0x8, addend: 0x0, symName: _resize, symObjAddr: 0xCB0, symBinAddr: 0x100002980, symSize: 0x30 }
+  - { offsetInCU: 0x52C, offset: 0xA60, size: 0x8, addend: 0x0, symName: _bucket_item, symObjAddr: 0xCE0, symBinAddr: 0x1000029B0, symSize: 0x20 }
+  - { offsetInCU: 0x554, offset: 0xA88, size: 0x8, addend: 0x0, symName: _bucket_at, symObjAddr: 0xD00, symBinAddr: 0x1000029D0, symSize: 0x40 }
+  - { offsetInCU: 0x58A, offset: 0xABE, size: 0x8, addend: 0x0, symName: _hashmap_set, symObjAddr: 0xD40, symBinAddr: 0x100002A10, symSize: 0x50 }
+  - { offsetInCU: 0x5C3, offset: 0xAF7, size: 0x8, addend: 0x0, symName: _get_hash, symObjAddr: 0xD90, symBinAddr: 0x100002A60, symSize: 0x40 }
+  - { offsetInCU: 0x5F9, offset: 0xB2D, size: 0x8, addend: 0x0, symName: _hashmap_get_with_hash, symObjAddr: 0xDD0, symBinAddr: 0x100002AA0, symSize: 0x100 }
+  - { offsetInCU: 0x68A, offset: 0xBBE, size: 0x8, addend: 0x0, symName: _hashmap_get, symObjAddr: 0xED0, symBinAddr: 0x100002BA0, symSize: 0x50 }
+  - { offsetInCU: 0x6C3, offset: 0xBF7, size: 0x8, addend: 0x0, symName: _hashmap_probe, symObjAddr: 0xF20, symBinAddr: 0x100002BF0, symSize: 0x70 }
+  - { offsetInCU: 0x71A, offset: 0xC4E, size: 0x8, addend: 0x0, symName: _hashmap_delete_with_hash, symObjAddr: 0xF90, symBinAddr: 0x100002C60, symSize: 0x240 }
+  - { offsetInCU: 0x7BA, offset: 0xCEE, size: 0x8, addend: 0x0, symName: _hashmap_delete, symObjAddr: 0x11D0, symBinAddr: 0x100002EA0, symSize: 0x50 }
+  - { offsetInCU: 0x7F3, offset: 0xD27, size: 0x8, addend: 0x0, symName: _hashmap_count, symObjAddr: 0x1220, symBinAddr: 0x100002EF0, symSize: 0x20 }
+  - { offsetInCU: 0x81D, offset: 0xD51, size: 0x8, addend: 0x0, symName: _hashmap_free, symObjAddr: 0x1240, symBinAddr: 0x100002F10, symSize: 0x50 }
+  - { offsetInCU: 0x843, offset: 0xD77, size: 0x8, addend: 0x0, symName: _hashmap_oom, symObjAddr: 0x1290, symBinAddr: 0x100002F60, symSize: 0x20 }
+  - { offsetInCU: 0x86D, offset: 0xDA1, size: 0x8, addend: 0x0, symName: _hashmap_scan, symObjAddr: 0x12B0, symBinAddr: 0x100002F80, symSize: 0xB0 }
+  - { offsetInCU: 0x8EF, offset: 0xE23, size: 0x8, addend: 0x0, symName: _hashmap_iter, symObjAddr: 0x1360, symBinAddr: 0x100003030, symSize: 0xA0 }
+  - { offsetInCU: 0x946, offset: 0xE7A, size: 0x8, addend: 0x0, symName: _hashmap_sip, symObjAddr: 0x1400, symBinAddr: 0x1000030D0, symSize: 0x40 }
+  - { offsetInCU: 0x99D, offset: 0xED1, size: 0x8, addend: 0x0, symName: _SIP64, symObjAddr: 0x1440, symBinAddr: 0x100003110, symSize: 0xAB0 }
+  - { offsetInCU: 0xAAE, offset: 0xFE2, size: 0x8, addend: 0x0, symName: _hashmap_murmur, symObjAddr: 0x1EF0, symBinAddr: 0x100003BC0, symSize: 0x40 }
+  - { offsetInCU: 0xB05, offset: 0x1039, size: 0x8, addend: 0x0, symName: _MM86128, symObjAddr: 0x1F30, symBinAddr: 0x100003C00, symSize: 0x600 }
+  - { offsetInCU: 0xCAF, offset: 0x11E3, size: 0x8, addend: 0x0, symName: _hashmap_xxhash3, symObjAddr: 0x2530, symBinAddr: 0x100004200, symSize: 0x30 }
+  - { offsetInCU: 0xD06, offset: 0x123A, size: 0x8, addend: 0x0, symName: _xxh3, symObjAddr: 0x2560, symBinAddr: 0x100004230, symSize: 0x5C0 }
+  - { offsetInCU: 0xDF5, offset: 0x1329, size: 0x8, addend: 0x0, symName: _resize0, symObjAddr: 0x2B20, symBinAddr: 0x1000047F0, symSize: 0x2E0 }
+  - { offsetInCU: 0xE9D, offset: 0x13D1, size: 0x8, addend: 0x0, symName: _bucket_at0, symObjAddr: 0x2E00, symBinAddr: 0x100004AD0, symSize: 0x30 }
+  - { offsetInCU: 0xEE1, offset: 0x1415, size: 0x8, addend: 0x0, symName: _XXH_read64, symObjAddr: 0x2E30, symBinAddr: 0x100004B00, symSize: 0x20 }
+  - { offsetInCU: 0xF1A, offset: 0x144E, size: 0x8, addend: 0x0, symName: _XXH_rotl64, symObjAddr: 0x2E50, symBinAddr: 0x100004B20, symSize: 0x30 }
+  - { offsetInCU: 0xF53, offset: 0x1487, size: 0x8, addend: 0x0, symName: _XXH_read32, symObjAddr: 0x2E80, symBinAddr: 0x100004B50, symSize: 0x16 }
+  - { offsetInCU: 0x26, offset: 0x1685, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100004B70, symSize: 0x2CC }
+  - { offsetInCU: 0x41, offset: 0x16A0, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100004B70, symSize: 0x2CC }
+...

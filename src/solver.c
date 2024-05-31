@@ -1,3 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <float.h>
+#include <math.h>
+#include "hashmap.h"
 #include "solver.h"
 // Matrix is assumed to be tridiagonal.
 // Algorithm from "Numerical Recipes in C"
@@ -23,21 +28,21 @@ void tqli(double *d, double *e, double **z, int n)
     // `diagonal`: n-length array representing the diagonal
     // `subdiagonal`: n-length array representing the subdiagonal. subdiagonal[n-1] is arbitrary
     // 'z': initially 2d identity matrix. Out parameter for eigenvectors
-    const double EPS = 0.0000000001; // 1E-10
-    int m, l, iter, i, k;
+    const double EPS = DBL_EPSILON;
+    int m,l,iter,i,k;
     double s,r,p,g,f,dd,c,b;
 
     e[n-1] = 0.0;
 
-    for (l=0;l<n;l++) {
-        iter=0;
+    for (l = 0; l < n; l++) {
+        iter = 0;
         do {
-            for (m=l; m<n-1;m++) {
+            for (m = l; m < n - 1; m++) {
                 dd = fabs(d[m]) + fabs(d[m+1]);
                 if (fabs(e[m]) <= EPS * dd)
                     break;
             }
-            if (m!=l) {
+            if (m != l) {
                 if (iter++ == 30) {
                     fprintf(stderr, "tqli: Too many iterations\n");
                     exit(1);
@@ -46,13 +51,13 @@ void tqli(double *d, double *e, double **z, int n)
                 r = pythag(g, 1.0);
                 g = d[m] - d[l] + e[l] / (g + sign(r, g));
 
-                s=c=1.0;
-                p=0.0;
-                for (i=m-1;i>=l;i--) {
-                    f = s*e[i];
-                    b = c*e[i];
+                s = c = 1.0;
+                p = 0.0;
+                for (i = m - 1; i >= l; i--) {
+                    f = s * e[i];
+                    b = c * e[i];
                     e[i+1] = (r=pythag(f,g));
-                    if (r==0.0) {
+                    if (r == 0.0) {
                         d[i+1] -= p;
                         e[m] = 0.0;
                         break;
@@ -60,13 +65,13 @@ void tqli(double *d, double *e, double **z, int n)
                     s = f/r;
                     c = g/r;
                     g = d[i+1] - p;
-                    r = (d[i]-g)*s + 2.0*c*b;
-                    d[i+1] = g+(p=s*r);
-                    g = c*r - b;
-                    for (k=0; k<n; k++) {
+                    r = (d[i] - g) * s + 2.0 * c * b;
+                    d[i+1] = g + (p=s * r);
+                    g = c * r - b;
+                    for (k = 0; k < n; k++) {
                         f = z[k][i+1];
-                        z[k][i+1] = s*z[k][i] + c *f;
-                        z[k][i] = c * z[k][i] - s*f;
+                        z[k][i+1] = s * z[k][i] + c * f;
+                        z[k][i] = c * z[k][i] - s * f;
                     }
                 }
                 if (r == 0.0 && i>= l) continue;
@@ -74,13 +79,13 @@ void tqli(double *d, double *e, double **z, int n)
                 e[l] = g;
                 e[m] = 0.0;
             }
-        } while(m!= l);
+        } while(m != l);
     }
 }
 
 void show_2D(double **arr, int n)
 {
-    for(int i=0; i<n;i++)
+    for(int i=0; i<n; i++)
     {
         for(int j=0; j<n; j++)
         {
@@ -111,4 +116,72 @@ double **create_identity(int n)
         outer[i][i] = 1.0;
     }
     return outer;
+}
+
+struct evalue {
+    double value;
+    int index;
+};
+
+uint64_t evalue_hash(const void *item, uint64_t seed0, uint64_t seed1)
+{
+    struct evalue *ev = (struct evalue*) item;
+    return hashmap_sip(&(ev->value), 1, seed0, seed1);
+}
+
+int evalue_compare(const void *a, const void *b, void *udata)
+{
+    struct evalue *ev1 = (struct evalue*) a;
+    struct evalue *ev2 = (struct evalue*) b;
+
+    // possibly the other way.
+    if (ev1->value < ev2->value)
+        return -1;
+    else if (ev1->value > ev2->value)
+        return 1;
+    else
+        return 0;
+}
+
+int compare_doubles(const void *a, const void *b)
+{
+    double *num1 = (double*) a;
+    double *num2 = (double*) b;
+
+    if (*num1 < *num2) 
+        return -1;
+    else if (*num1 > *num2)
+        return 1;
+    else
+        return 0;
+}
+
+void free_square_matrix(double **z, int n)
+{
+    for(int i = 0; i < n; i++) {
+        free(z[i]);
+    }
+    free(z);
+}
+
+double **sort_e_vectors(double *evalues, double **evectors, int n)
+{
+    struct hashmap *map = hashmap_new(sizeof(struct evalue), 0, 0, 0,
+                                &evalue_hash, &evalue_compare, NULL, NULL);
+
+    for(int i = 0; i < n; i++) {
+        hashmap_set(map, &(struct evalue) { .value=evalues[i], .index=i});
+    }
+
+    qsort(evalues, n, sizeof(double), &compare_doubles);
+    double **out = create_identity(n);
+
+    for(int i = 0; i < n; i++) {
+        const struct evalue *eigv = hashmap_get(map, &(struct evalue){ .value=evalues[i]});
+        for(int j = 0; j < n; j++) {
+            out[j][i] = evectors[j][eigv->index];
+        }    
+    }
+    free_square_matrix(evectors, n);
+    return out;
 }
