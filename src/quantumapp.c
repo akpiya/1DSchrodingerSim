@@ -8,6 +8,7 @@
 #include <complex.h>
 
 const int N = 500;
+change
 const Vector2 ORIGIN = {0.0, 0.0};
 
 typedef struct SimConfig
