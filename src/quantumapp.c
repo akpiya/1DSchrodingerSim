@@ -5,6 +5,7 @@
 #include "potential.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <complex.h>
 
 const int N = 500;
 const Vector2 ORIGIN = {0.0, 0.0};
@@ -15,12 +16,26 @@ typedef struct SimConfig
     unsigned char zoom_mode;
     unsigned char paused;
     unsigned char num_eigenfunctions;
+    unsigned char paint;
+    double dt;
     double arrow_side_length;
     double click_radius;
     double horizontal_axis;
     double axis_thickness;
     double vertical_axis;
 } SimConfig;
+
+typedef struct GuiOverlay
+{
+    Rectangle background;
+    Rectangle paint_button;
+} GuiOverlay;
+
+typedef struct EigenPackage
+{
+    double *evalues;
+    double **efunctions;
+} EigenPackage;
 
 Vector2* apply_potential(double *domain, int n, double (*f) (double)) 
 {
@@ -49,7 +64,7 @@ void display_points(Vector2 *points, int n, Color color, int width, int height)
     DrawLineStrip(scaled_points, N, color);
 }
 
-Vector2 **find_eigenstates(Vector2 *potential, int n, int k)
+EigenPackage *solve_spectrum(Vector2 *potential, int n, int k)
 {
     double dl = potential[1].x - potential[0].x;
     double *diagonal = malloc(sizeof(double)*(n-2));
@@ -90,15 +105,12 @@ Vector2 **find_eigenstates(Vector2 *potential, int n, int k)
             wavefunctions[j][i].y = wavefunctions[j][i].y * wavefunctions[j][i].y;
         }
     }
-
-
     free(diagonal);
     free(subdiagonal);
     for(int i=0;i<n-2;i++) {
         free(z[i]);
     }
     free(z);
-
     return wavefunctions;
 }
 
@@ -108,7 +120,7 @@ double *create_domain(int l_bound, int r_bound)
     double *domain = malloc(sizeof(double)*(N+1));
     for(int i=0;i<=N;i++)
     {
-       domain[i] = l_bound + i * dl; 
+         domain[i] = l_bound + i * dl; 
     }
     return domain;
 }
@@ -125,7 +137,17 @@ SimConfig *init_configuration()
     config->horizontal_axis = GetScreenWidth();
     config->vertical_axis = GetScreenHeight();
     config->axis_thickness = 4.0;
+    config->paint = 0;
     return config;
+}
+
+GuiOverlay *init_gui()
+{
+    GuiOverlay *gui = malloc(sizeof(GuiOverlay));
+}
+
+void draw_gui()
+{
 }
 
 
@@ -144,14 +166,17 @@ int main()
     double *x = create_domain(0, 1);
     Vector2 *potential = apply_potential(x, N+1, &gaussian); 
     Color eig_colors[6] = {RED, GREEN, ORANGE, PURPLE, BROWN, BLUE};
-    Vector2 **eigenstates = find_eigenstates(potential, N+1, config->num_eigenfunctions);
+    Vector2 **eigenstates = find_eigenstates(
+        potential,
+        N+1,
+        config->num_eigenfunctions
+    );
     SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
     while (!WindowShouldClose())        // Detect window close button or ESC key
     {
-        // Update
         if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
         {
             Vector2 delta = GetMouseDelta();
@@ -159,7 +184,11 @@ int main()
             config->camera.target = Vector2Add(config->camera.target, delta);
         }
 
-        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && config->paint)
+        {
+            SetMouseCursor(MOUSE_CURSOR_CROSSHAIR);
+        }
+        else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
         {
             Vector2 delta = GetMouseDelta();
             delta = Vector2Scale(delta, -1.0 / config->camera.zoom);
@@ -172,13 +201,20 @@ int main()
             {
                 // horizontal_axis = Vector2Add(horizontal_axis, (Vector2) {-1 * delta.x, 0});
                 config->horizontal_axis = cursor_pos.x;
+                SetMouseCursor(MOUSE_CURSOR_RESIZE_EW);
             }
             if (Vector2Distance(cursor_pos, 
                 (Vector2) {0, config->vertical_axis}) < config->click_radius * 1.0 / config->camera.zoom)
             {
                 // vertical_axis = Vector2Add(vertical_axis, (Vector2) {0, delta.y});
                 config->vertical_axis = cursor_pos.y;
+                SetMouseCursor(MOUSE_CURSOR_RESIZE_NS);
             }
+        }
+
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+        {
+            SetMouseCursor(MOUSE_CURSOR_ARROW);
         }
 
         float wheel = GetMouseWheelMove();
@@ -203,70 +239,73 @@ int main()
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
-            ClearBackground(RAYWHITE);
-            BeginMode2D(config->camera);
-                // Draw the 3d grid, rotated 90 degrees and centered around 0,0 
-                // just so we have something in the XY plane
-                rlPushMatrix();
-                    rlTranslatef(0, 25*50, 0);
-                    rlRotatef(90, 1, 0, 0);
-                    // DrawGrid(100, 50.0);
-                 rlPopMatrix();
-                display_points(potential, N+1, BLACK, config->horizontal_axis, config->vertical_axis);
-                // displaying desired potential
-                for(int i=0;i<config->num_eigenfunctions;i++) {
-                    display_points(eigenstates[i], N+1, eig_colors[i%6], config->horizontal_axis, config->vertical_axis);
-                }
+        ClearBackground(RAYWHITE);
 
-                // display resizeable axes
-                config->vertical_axis *= -1;
-                DrawLineEx(
-                    ORIGIN,
-                    (Vector2) {config->horizontal_axis, 0},
-                    config->axis_thickness,
-                    BLACK
-                );
+        draw_gui();
 
-                DrawLineEx(
-                    ORIGIN,
-                    (Vector2) {0, config->vertical_axis},
-                    config->axis_thickness,
-                    BLACK
-                );
+        BeginMode2D(config->camera);
+        // Draw the 3d grid, rotated 90 degrees and centered around 0,0 
+        // just so we have something in the XY plane
+        rlPushMatrix();
+            rlTranslatef(0, 25*50, 0);
+            rlRotatef(90, 1, 0, 0);
+            // DrawGrid(100, 50.0);
+            rlPopMatrix();
+        display_points(potential, N+1, BLACK, config->horizontal_axis, config->vertical_axis);
+        // displaying desired potential
+        for(int i=0;i<config->num_eigenfunctions;i++) {
+            display_points(eigenstates[i], N+1, eig_colors[i%6], config->horizontal_axis, config->vertical_axis);
+        }
 
-                DrawTriangle(
-                    Vector2Add(
-                        (Vector2) {config->horizontal_axis, 0.0}, 
-                        (Vector2){ sqrt(3)*config->arrow_side_length / 2.0, 0.0 }
-                    ),
-                    Vector2Add(
-                        (Vector2) {config->horizontal_axis, 0.0},
-                        (Vector2){ 0.0, -1*config->arrow_side_length / 2.0}
-                    ),
-                    Vector2Add(
-                        (Vector2) {config->horizontal_axis, 0.0}, 
-                        (Vector2){ 0.0, config->arrow_side_length / 2.0}
-                    ),
-                    BLACK
-                );
-                DrawTriangle(
-                    Vector2Add(
-                        (Vector2) {0.0, config->vertical_axis},
-                        (Vector2) {0.0, -1*sqrt(3)*config->arrow_side_length / 2.0}
-                    ),
-                    Vector2Add(
-                        (Vector2) {0.0, config->vertical_axis},
-                        (Vector2) {-1*config->arrow_side_length / 2.0, 0.0}
-                    ),
-                    Vector2Add(
-                        (Vector2) {0.0, config->vertical_axis},
-                        (Vector2) {config->arrow_side_length / 2.0, 0.0}
-                    ),
-                    BLACK
-                );
-                config->vertical_axis *= -1;
-               
-            EndMode2D();
+        // display resizeable axes
+        config->vertical_axis *= -1;
+        DrawLineEx(
+            ORIGIN,
+            (Vector2) {config->horizontal_axis, 0},
+            config->axis_thickness,
+            BLACK
+        );
+
+        DrawLineEx(
+            ORIGIN,
+            (Vector2) {0, config->vertical_axis},
+            config->axis_thickness,
+            BLACK
+        );
+
+        DrawTriangle(
+            Vector2Add(
+                (Vector2) {config->horizontal_axis, 0.0}, 
+                (Vector2) {sqrt(3)*config->arrow_side_length / 2.0, 0.0}
+            ),
+            Vector2Add(
+                (Vector2) {config->horizontal_axis, 0.0},
+                (Vector2) {0.0, -1*config->arrow_side_length / 2.0}
+            ),
+            Vector2Add(
+                (Vector2) {config->horizontal_axis, 0.0}, 
+                (Vector2){ 0.0, config->arrow_side_length / 2.0}
+            ),
+            BLACK
+        );
+        DrawTriangle(
+            Vector2Add(
+                (Vector2) {0.0, config->vertical_axis},
+                (Vector2) {0.0, -1*sqrt(3)*config->arrow_side_length / 2.0}
+            ),
+            Vector2Add(
+                (Vector2) {0.0, config->vertical_axis},
+                (Vector2) {-1*config->arrow_side_length / 2.0, 0.0}
+            ),
+            Vector2Add(
+                (Vector2) {0.0, config->vertical_axis},
+                (Vector2) {config->arrow_side_length / 2.0, 0.0}
+            ),
+            BLACK
+        );
+        config->vertical_axis *= -1;
+                
+        EndMode2D();
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
