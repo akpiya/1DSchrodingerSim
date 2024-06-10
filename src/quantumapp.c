@@ -2,29 +2,25 @@
 #include "rlgl.h"
 #include "raymath.h"
 #include "solver.h"
+#include "potential.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 const int N = 500;
+const Vector2 ORIGIN = {0.0, 0.0};
 
-double constant(double x)
+typedef struct SimConfig
 {
-    return 0.0;
-}
-double linear(double x)
-{
-    return x;
-}
-
-double quadratic(double x)
-{
-    return  100 * (x-0.5)*(x-0.5);
-}
-
-double sinusodial(double x)
-{
-    return 1000* sin(25*x) + 0.5;
-}
+    Camera2D camera;
+    unsigned char zoom_mode;
+    unsigned char paused;
+    unsigned char num_eigenfunctions;
+    double arrow_side_length;
+    double click_radius;
+    double horizontal_axis;
+    double axis_thickness;
+    double vertical_axis;
+} SimConfig;
 
 Vector2* apply_potential(double *domain, int n, double (*f) (double)) 
 {
@@ -36,16 +32,19 @@ Vector2* apply_potential(double *domain, int n, double (*f) (double))
     return points;
 }
 
-void display_points(Vector2 *points, int n, Color color) 
+void display_points(Vector2 *points, int n, Color color, int width, int height) 
 {
-    int width = GetScreenWidth();
-    int height = GetScreenHeight();
-
     Vector2 *scaled_points = malloc(sizeof(Vector2)*n);
+    double max_val = -1.0;
+    for (int i=0;i<n;i++) {
+        if (points[i].y > max_val)
+            max_val = points[i].y;
+    }
+
     for (int i=0;i<n;i++)
     {
         scaled_points[i].x = points[i].x * width;
-        scaled_points[i].y = -1 * points[i].y + height;
+        scaled_points[i].y = -1 * (points[i].y / max_val) * height;
     }
     DrawLineStrip(scaled_points, N, color);
 }
@@ -53,7 +52,6 @@ void display_points(Vector2 *points, int n, Color color)
 Vector2 **find_eigenstates(Vector2 *potential, int n, int k)
 {
     double dl = potential[1].x - potential[0].x;
-    printf("delta_y: %f\n", 1/(dl * dl));
     double *diagonal = malloc(sizeof(double)*(n-2));
     double *subdiagonal = malloc(sizeof(double)*(n-2));
     for(int i=0;i<n-2;i++) {
@@ -115,6 +113,21 @@ double *create_domain(int l_bound, int r_bound)
     return domain;
 }
 
+SimConfig *init_configuration()
+{
+    SimConfig *config = malloc(sizeof(SimConfig));
+    config->camera = (Camera2D) { .offset={0.0, GetScreenHeight()}, .zoom=1.0f };
+    config->click_radius = 20.0;
+    config->arrow_side_length = 25.0;
+    config->zoom_mode = 0;
+    config->paused = 0;
+    config->num_eigenfunctions = 3;
+    config->horizontal_axis = GetScreenWidth();
+    config->vertical_axis = GetScreenHeight();
+    config->axis_thickness = 4.0;
+    return config;
+}
+
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -123,22 +136,15 @@ int main()
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 600;
+    const int screen_width = 800;
+    const int screen_height = 600;
 
-    InitWindow(screenWidth, screenHeight, "1D Schrodinger Equation Solver");
-
-    Camera2D camera = { 0 };
-    camera.zoom = 1.0f;
+    InitWindow(screen_width, screen_height, "1D Schrodinger Equation Solver");
+    SimConfig *config = init_configuration();
     double *x = create_domain(0, 1);
-    Vector2 *potential = apply_potential(x,N+1, &sinusodial); 
-    int zoomMode = 0;   // 0-Mouse Wheel, 1-Mouse Move
-    int paused = 0; // 0-unpaused, 1-paused
-    int num_eigenstates = 3;
+    Vector2 *potential = apply_potential(x, N+1, &gaussian); 
     Color eig_colors[6] = {RED, GREEN, ORANGE, PURPLE, BROWN, BLUE};
-
-    Vector2 **eigenstates = find_eigenstates(potential, N+1, num_eigenstates);
-    printf("\n");
+    Vector2 **eigenstates = find_eigenstates(potential, N+1, config->num_eigenfunctions);
     SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
@@ -146,39 +152,59 @@ int main()
     while (!WindowShouldClose())        // Detect window close button or ESC key
     {
         // Update
-        //----------------------------------------------------------------------------------
-        
         if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
         {
             Vector2 delta = GetMouseDelta();
-            delta = Vector2Scale(delta, -1.0f/camera.zoom);
-            camera.target = Vector2Add(camera.target, delta);
+            delta = Vector2Scale(delta, -1.0 / config->camera.zoom);
+            config->camera.target = Vector2Add(config->camera.target, delta);
+        }
+
+        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+        {
+            Vector2 delta = GetMouseDelta();
+            delta = Vector2Scale(delta, -1.0 / config->camera.zoom);
+
+            Vector2 cursor_pos = GetScreenToWorld2D(GetMousePosition(), config->camera);
+            cursor_pos.y *= -1;
+
+            if (Vector2Distance(cursor_pos,
+                (Vector2) {config->horizontal_axis, 0}) < config->click_radius * 1.0 / config->camera.zoom)
+            {
+                // horizontal_axis = Vector2Add(horizontal_axis, (Vector2) {-1 * delta.x, 0});
+                config->horizontal_axis = cursor_pos.x;
+            }
+            if (Vector2Distance(cursor_pos, 
+                (Vector2) {0, config->vertical_axis}) < config->click_radius * 1.0 / config->camera.zoom)
+            {
+                // vertical_axis = Vector2Add(vertical_axis, (Vector2) {0, delta.y});
+                config->vertical_axis = cursor_pos.y;
+            }
         }
 
         float wheel = GetMouseWheelMove();
         if (wheel != 0)
         {
             // Get the world point that is under the mouse
-            Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
+            Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), config->camera);
 
             // Set the offset to where the mouse is
-            camera.offset = GetMousePosition();
+            config->camera.offset = GetMousePosition();
 
             // Set the target to match, so that the camera maps the world space point 
             // under the cursor to the screen space point under the cursor at any zoom
-            camera.target = mouseWorldPos;
+            config->camera.target = mouseWorldPos;
 
             // Zoom increment
             float scaleFactor = 1.0f + (0.25f*fabsf(wheel));
             if (wheel < 0) scaleFactor = 1.0f/scaleFactor;
-            camera.zoom = Clamp(camera.zoom*scaleFactor, 0.125f, 64.0f);
+            config->camera.zoom = Clamp(config->camera.zoom*scaleFactor, 0.125f, 64.0f);
         }
 
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            BeginMode2D(camera);
+            BeginMode2D(config->camera);
                 // Draw the 3d grid, rotated 90 degrees and centered around 0,0 
                 // just so we have something in the XY plane
                 rlPushMatrix();
@@ -186,20 +212,65 @@ int main()
                     rlRotatef(90, 1, 0, 0);
                     // DrawGrid(100, 50.0);
                  rlPopMatrix();
-
-
-                display_points(potential, N+1, BLACK);
-                for(int i=0;i<num_eigenstates;i++) {
-                    display_points(eigenstates[i], N+1, eig_colors[i%6]);
+                display_points(potential, N+1, BLACK, config->horizontal_axis, config->vertical_axis);
+                // displaying desired potential
+                for(int i=0;i<config->num_eigenfunctions;i++) {
+                    display_points(eigenstates[i], N+1, eig_colors[i%6], config->horizontal_axis, config->vertical_axis);
                 }
+
+                // display resizeable axes
+                config->vertical_axis *= -1;
+                DrawLineEx(
+                    ORIGIN,
+                    (Vector2) {config->horizontal_axis, 0},
+                    config->axis_thickness,
+                    BLACK
+                );
+
+                DrawLineEx(
+                    ORIGIN,
+                    (Vector2) {0, config->vertical_axis},
+                    config->axis_thickness,
+                    BLACK
+                );
+
+                DrawTriangle(
+                    Vector2Add(
+                        (Vector2) {config->horizontal_axis, 0.0}, 
+                        (Vector2){ sqrt(3)*config->arrow_side_length / 2.0, 0.0 }
+                    ),
+                    Vector2Add(
+                        (Vector2) {config->horizontal_axis, 0.0},
+                        (Vector2){ 0.0, -1*config->arrow_side_length / 2.0}
+                    ),
+                    Vector2Add(
+                        (Vector2) {config->horizontal_axis, 0.0}, 
+                        (Vector2){ 0.0, config->arrow_side_length / 2.0}
+                    ),
+                    BLACK
+                );
+                DrawTriangle(
+                    Vector2Add(
+                        (Vector2) {0.0, config->vertical_axis},
+                        (Vector2) {0.0, -1*sqrt(3)*config->arrow_side_length / 2.0}
+                    ),
+                    Vector2Add(
+                        (Vector2) {0.0, config->vertical_axis},
+                        (Vector2) {-1*config->arrow_side_length / 2.0, 0.0}
+                    ),
+                    Vector2Add(
+                        (Vector2) {0.0, config->vertical_axis},
+                        (Vector2) {config->arrow_side_length / 2.0, 0.0}
+                    ),
+                    BLACK
+                );
+                config->vertical_axis *= -1;
+               
             EndMode2D();
         EndDrawing();
         //----------------------------------------------------------------------------------
     }
 
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
+    CloseWindow();
     return 0;
 }
