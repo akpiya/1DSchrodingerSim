@@ -1,7 +1,10 @@
 .PHONY: clean
 
-build: src/quantumapp.c src/solver.c src/potential.c
-	clang -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL -Iinclude/ -L lib/ -lraylib src/quantumapp.c src/solver.c lib/hashmap.c src/potential.c -o bin/quantum
+build: src/quantumapp.c src/solver.c src/potential.c src/guiconfig.c src/simconfig.c
+	clang \
+	-framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL \
+	-Wall -std=c11 -Iinclude/ -L lib/ -lraylib -o bin/quantum \
+	src/quantumapp.c src/solver.c lib/hashmap.c src/potential.c src/guiconfig.c src/simconfig.c
 
 run: build
 	bin/quantum

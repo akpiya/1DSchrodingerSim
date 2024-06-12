@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <float.h>
 #include <math.h>
+
 #include "hashmap.h"
 #include "solver.h"
+#include "raylib.h"
 // Matrix is assumed to be tridiagonal.
 // Algorithm from "Numerical Recipes in C"
 //
@@ -22,6 +24,67 @@ double sign(double a, double b)
     return b >= 0 ? (a >= 0 ? a : -a) : (a >= 0 ? -a : a);
 }
 
+
+int min(int a, int b)
+{
+    return ((a < b) ?  a : b);
+}
+
+int max(int a, int b)
+{
+    return ((a > b) ? a : b);
+}
+
+EigenPackage *init_eigenpackage(int num_evalues, int n, double *domain)
+{
+    EigenPackage *pkg = malloc(sizeof(EigenPackage));
+    pkg->subdiagonal = calloc((n-1), sizeof(double));
+    pkg->evalues = calloc((n-1), sizeof(double));
+    pkg->num_efunctions = num_evalues;
+    pkg->n = n;
+    pkg->z = create_identity(n-1);
+
+    pkg->efunctions = malloc(sizeof(Vector2*)*num_evalues);
+
+    for(int j=0;j<num_evalues;j++) {
+        pkg->efunctions[j] = malloc(sizeof(Vector2)*(n+1));
+
+        // Applying the boundary conditions
+        pkg->efunctions[j][0].x = domain[0];
+        pkg->efunctions[j][0].y = 0.0;
+
+        pkg->efunctions[j][n].x = domain[n];
+        pkg->efunctions[j][n].y = 0.0;
+
+        for(int i=1;i<n-1;i++) {
+            pkg->efunctions[j][i].x = domain[i];
+            pkg->efunctions[j][i].y = 0.0; 
+        }
+    }
+
+    return pkg;
+}
+
+double *create_domain(int l_bound, int r_bound, int n)
+{
+    double dl = (r_bound - l_bound) / ((double) n);
+    double *domain = malloc(sizeof(double)*(n+1));
+    for(int i=0;i<=n;i++)
+    {
+         domain[i] = l_bound + i * dl; 
+    }
+    return domain;
+}
+
+Vector2* apply_potential(double *domain, int n, double (*f) (double)) 
+{
+    Vector2 *points = malloc(sizeof(Vector2)*(n+1));
+    for (int i=0;i<n+1;i++) {
+        points[i].x = domain[i];
+        points[i].y = (*f)(domain[i]);
+    }
+    return points;
+}
 
 void tqli(double *d, double *e, double **z, int n)
 {
@@ -169,19 +232,76 @@ double **sort_e_vectors(double *evalues, double **evectors, int n)
     struct hashmap *map = hashmap_new(sizeof(struct evalue), 0, 0, 0,
                                 &evalue_hash, &evalue_compare, NULL, NULL);
 
-    for(int i = 0; i < n; i++) {
+    for(int i = 0; i < n-1; i++) {
         hashmap_set(map, &(struct evalue) { .value=evalues[i], .index=i});
     }
 
-    qsort(evalues, n, sizeof(double), &compare_doubles);
+    qsort(evalues, n-1, sizeof(double), &compare_doubles);
     double **out = create_identity(n);
 
-    for(int i = 0; i < n; i++) {
+    for(int i = 0; i < n-1; i++) {
         const struct evalue *eigv = hashmap_get(map, &(struct evalue){ .value=evalues[i]});
-        for(int j = 0; j < n; j++) {
+        for(int j = 0; j < n-1; j++) {
             out[j][i] = evectors[j][eigv->index];
         }    
     }
-    free_square_matrix(evectors, n);
+    free_square_matrix(evectors, n-1);
     return out;
+}
+
+void solve_spectrum(Vector2 *potential, int n, int k, EigenPackage *epkg)
+{
+    // User switches the number of eigenvalues to display
+    if (k != epkg->num_efunctions)
+    {
+        epkg->num_efunctions = k;
+    }
+
+    double dl = potential[1].x - potential[0].x;
+
+    for(int i=0;i<n-1;i++)
+    {
+        epkg->evalues[i] = 1.0 / (dl * dl) + 2000*potential[i+1].y;
+        epkg->subdiagonal[i] = -1.0 / (2 * dl * dl);
+        for (int j=0; j<n-1; j++)
+        {
+            if (i == j)
+                epkg->z[i][j] = 1.0;
+            else
+                epkg->z[i][j] = 0.0;
+        }
+    }
+    //tqli() is only exception to size input as pure
+    tqli(epkg->evalues, epkg->subdiagonal, epkg->z, epkg->n-1);
+    epkg->z = sort_e_vectors(epkg->evalues, epkg->z, epkg->n);
+
+    // extract wavefunctions from z
+    Vector2 **wavefunctions = malloc(sizeof(Vector2*)*k); 
+    for(int j=0;j<k;j++) {
+        wavefunctions[j] = malloc(sizeof(Vector2)*(n+1));
+        double area = 0;
+
+        // Applying the boundary conditions
+        wavefunctions[j][0].x = potential[0].x;
+        wavefunctions[j][0].y = 0.0;
+
+        wavefunctions[j][n].x = potential[n].x;
+        wavefunctions[j][n].y = 0.0;
+
+        for(int i=1;i<n;i++) {
+            wavefunctions[j][i].x = potential[i].x;
+            wavefunctions[j][i].y = epkg->z[i-1][j];
+            area += epkg->z[i-1][j] * epkg->z[i-1][j];
+        }
+        area *= dl;
+        // normalize the wavefunction
+        for(int i=0;i<n+1;i++) {
+            wavefunctions[j][i].y /= sqrt(area);
+        }
+
+        for(int i=0;i<n+1;i++) {
+            wavefunctions[j][i].y = wavefunctions[j][i].y * wavefunctions[j][i].y;
+        }
+    }
+    epkg->efunctions = wavefunctions;
 }

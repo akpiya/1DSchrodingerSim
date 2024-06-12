@@ -7,12 +7,12 @@ double constant(double x)
 }
 double linear(double x)
 {
-    return 1000*x;
+    return x;
 }
 
 double quadratic(double x)
 {
-    return  100 * (x-0.5)*(x-0.5);
+    return  4*(x-0.5)*(x-0.5);
 }
 
 double step(double x)
