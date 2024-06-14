@@ -56,6 +56,9 @@ GuiConfig *init_guiconfig()
         config->gui_height - 2*config->button_offset
     };
 
+    Image cursor_img = LoadImage("assets/cursor.png");
+    config->cursor_btn_texture = LoadTextureFromImage(cursor_img);
+
     return config; 
 }
 

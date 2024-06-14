@@ -43,7 +43,11 @@ void display_points(Vector2 *points, int n, Color color, int width, int height)
         scaled_points[i].x = points[i].x * width;
         scaled_points[i].y = -1 * (points[i].y / max_val) * height;
     }
-    DrawLineStrip(scaled_points, N, color);
+
+    for (int i=0; i<n-1; i++) 
+    {
+        DrawLineEx(scaled_points[i], scaled_points[i+1], 2.5, color);
+    }
 }
 
 void draw_gui(GuiConfig *config)
@@ -88,6 +92,13 @@ void draw_gui(GuiConfig *config)
         5,
         cursor_btn_color
     );
+    // NPatchInfo btn_npatch_info = {()}
+    // DrawTextureNPatch(
+    //     config->cursor_btn_texture,
+    //     config->cursor_btn,
+    //     (Vector2) {0.0, 0.0},
+    //     RED
+    // );
 
     // Draw the paint box
     DrawRectangleRounded(
@@ -152,6 +163,7 @@ int main()
     // Main game loop
     while (!WindowShouldClose())        // Detect window close button or ESC key
     {
+        DrawFPS(0, 0);
         Vector2 mouse_point = GetMousePosition();
 
         if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
@@ -242,7 +254,7 @@ int main()
 
                 int index_low, index_high;
                 double start, end;
-                int smoothing = (int) ((15/6.0) * 1 / config->camera.zoom);
+                int smoothing = (int) ((15/7.0) * 1 / config->camera.zoom);
 
                 if (index < index2)
                 {

@@ -11,7 +11,7 @@ SimConfig *init_simconfig(int discretization)
     config->arrow_side_length = 25.0;
     config->zoom_mode = 0;
     config->paused = 0;
-    config->num_eigenfunctions = 2;
+    config->num_eigenfunctions = 3;
     config->horizontal_axis = GetScreenWidth();
     config->vertical_axis = GetScreenHeight();
     config->axis_thickness = 4.0;

@@ -18,11 +18,9 @@ double quadratic(double x)
 double step(double x)
 {
     if (x < 0.3)
-        return 0.0;
-    else if (x > 0.7)
-        return 0.0;
+        return 0.5;
     else
-        return 100;
+        return 0.0; 
 }
 
 double gaussian(double x)

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <float.h>
 #include <math.h>
-
 #include "hashmap.h"
 #include "solver.h"
 #include "raylib.h"
