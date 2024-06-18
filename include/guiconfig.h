@@ -5,17 +5,19 @@
 ******************************************************************************/
 #ifndef GUICONFIG_H
 #define GUICONFIG_H
-
 #include "raylib.h"
+
 
 // Contains all gui-level data
 typedef struct GuiConfig
 {
     Rectangle gui_background;
-    Rectangle cursor_btn; // cursor is selected
-    Rectangle paint_btn;  // paintbrush is selected
-    Rectangle textbox;    // textbox is selected
-    Rectangle efunc_btn;  // efunc_btn is pressed. Unpressed on mouse release
+    Rectangle cursor_btn;
+    Rectangle paint_btn;
+    Rectangle efunc_btn;
+    Rectangle left_btn;
+    Rectangle right_btn;
+    Rectangle num_btn;
 
     int slot_capacity;
     float gui_offset;
@@ -24,12 +26,17 @@ typedef struct GuiConfig
 
     unsigned char selected_cursor;
     unsigned char selected_paint;
-    unsigned char selected_text;
+    unsigned char selected_left;
+    unsigned char selected_right;
     unsigned char selected_evalue;
-    unsigned char on_text;
+    
+    // char textbox_input[MAX_INPUT_CHARS+1];
+    // char textbox_char_count;
 
     Texture2D cursor_btn_texture;
     Texture2D paint_btn_texture;
+    Texture2D left_btn_texture;
+    Texture2D right_btn_texture;
 
 } GuiConfig;
 

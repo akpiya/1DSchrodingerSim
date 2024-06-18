@@ -19,7 +19,6 @@
 const int N = 500; // LENGTH. NUM POINTS WILL BE 501
 const Vector2 ORIGIN = {0.0, 0.0};
 const int NUM_COMPUTE_EVECTORS = 30; //
-const int MAX_INPUT_CHARS = 3; // Textbox input size
 
 const Color GUI_COLOR = (Color) {112, 128, 144, 150};
 const Color UNSELECTED_COLOR = (Color) {229, 228, 226, 255};
@@ -57,7 +56,7 @@ void display_points(Vector2 *points, int n, Color color, int width, int height)
 }
 
 // Draws all information from a GuiConfig
-void draw_gui(GuiConfig *config)
+void draw_gui(GuiConfig *config, int num_eigenvalues)
 {
     // Draw the translucent box;
     DrawRectangleRounded(
@@ -69,7 +68,8 @@ void draw_gui(GuiConfig *config)
     
     Color cursor_btn_color;
     Color paint_btn_color;
-    Color textbox_color;
+    Color right_btn_color;
+    Color left_btn_color;
     Color evalue_btn_color;
 
     // Sets the color of buttons depending on what is selected
@@ -83,10 +83,15 @@ void draw_gui(GuiConfig *config)
     else
         paint_btn_color = UNSELECTED_COLOR;
 
-    if (config->selected_text)
-        textbox_color = SELECTED_COLOR;
+    if (config->selected_left)
+        left_btn_color = SELECTED_COLOR;
     else
-        textbox_color = UNSELECTED_COLOR;
+        left_btn_color = UNSELECTED_COLOR;
+
+    if (config->selected_right)
+        right_btn_color = SELECTED_COLOR;
+    else
+        right_btn_color = UNSELECTED_COLOR;
 
     if (config->selected_evalue)
         evalue_btn_color = SELECTED_COLOR;
@@ -109,12 +114,28 @@ void draw_gui(GuiConfig *config)
         paint_btn_color
     );
 
-    // Draw textbox
+    // Draw Left-button clicker
     DrawRectangleRounded(
-        config->textbox,
+        config->left_btn,
         0.2,
         5,
-        textbox_color
+        left_btn_color
+    );
+
+    // Draw the Eigenvalue Number box
+    DrawRectangleRounded(
+        config->num_btn,
+        0.2,
+        5,
+        UNSELECTED_COLOR // this element is never selected
+    );
+
+    // Draw right-button clicker
+    DrawRectangleRounded(
+        config->right_btn,
+        0.2,
+        5,
+        right_btn_color
     );
 
     // Draw Number of Evalue colors
@@ -136,7 +157,21 @@ void draw_gui(GuiConfig *config)
     DrawTexture(
         config->paint_btn_texture,
         config->paint_btn.x+5*config->button_offset,
-        config->cursor_btn.y,
+        config->paint_btn.y,
+        WHITE
+    );
+
+    DrawTexture(
+        config->left_btn_texture,
+        config->left_btn.x+5*config->button_offset,
+        config->left_btn.y,
+        WHITE
+    );
+
+    DrawTexture(
+        config->right_btn_texture,
+        config->right_btn.x+5*config->button_offset,
+        config->right_btn.y,
         WHITE
     );
 
@@ -148,6 +183,14 @@ void draw_gui(GuiConfig *config)
         14,
         BLACK 
     );
+
+    DrawText(
+        TextFormat("%d",num_eigenvalues),
+        config->num_btn.x + 70,
+        config->num_btn.y + config->num_btn.height / 3 - 3,
+        20,
+        BLACK
+    );
 }
 
 void clear_btn_selections(GuiConfig *config)
@@ -155,7 +198,8 @@ void clear_btn_selections(GuiConfig *config)
     config->selected_cursor = 0;
     config->selected_evalue = 0;
     config->selected_paint = 0;
-    config->selected_text = 0;
+    config->selected_left = 0;
+    config->selected_right = 0;
 }
 
 
@@ -194,7 +238,7 @@ int main()
 
         Vector2 cursor_pos = GetScreenToWorld2D(GetMousePosition(), config->camera);
         cursor_pos.y *= -1;
-        
+
         // Check whether the cursor is hovering over a specific button and color it accordingly.
         // Further check if the button is actually clicked
         if (CheckCollisionPointRec(mouse_point, gui_config->cursor_btn))
@@ -215,14 +259,42 @@ int main()
             }
             SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
         }
-        else if (CheckCollisionPointRec(mouse_point, gui_config->textbox))
+        else if (CheckCollisionPointRec(mouse_point, gui_config->left_btn))
         {
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
             {
                 clear_btn_selections(gui_config);
-                gui_config->selected_text= 1; 
+                gui_config->selected_left = 1;
+                if (config->num_eigenfunctions == 0)
+                {
+                    config->num_eigenfunctions = 1;        
+                }
+                config->num_eigenfunctions--;
+
             }
-            SetMouseCursor(MOUSE_CURSOR_IBEAM);
+            else
+            {
+                gui_config->selected_evalue = 0;
+                gui_config->selected_left = 0;
+                gui_config->selected_right = 0;
+            }
+            SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+        }
+        else if (CheckCollisionPointRec(mouse_point, gui_config->right_btn))
+        {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+            {
+                clear_btn_selections(gui_config);
+                gui_config->selected_right = 1;
+                config->num_eigenfunctions++;
+            }
+            else
+            {
+                gui_config->selected_evalue = 0;
+                gui_config->selected_left = 0;
+                gui_config->selected_right = 0;
+            }
+            SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
         }
         else if (CheckCollisionPointRec(mouse_point, gui_config->efunc_btn))
         {
@@ -246,6 +318,8 @@ int main()
             else
             {
                 gui_config->selected_evalue = 0;
+                gui_config->selected_left = 0;
+                gui_config->selected_right = 0;
             }
             SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
         } 
@@ -410,7 +484,7 @@ int main()
                 
         EndMode2D();
 
-        draw_gui(gui_config);
+        draw_gui(gui_config, config->num_eigenfunctions);
         
         EndDrawing();
     }
