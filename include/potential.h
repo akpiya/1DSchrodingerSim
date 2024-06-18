@@ -1,3 +1,6 @@
+/******************************************************************************
+*  Default potential functions. Used primarily for testing
+******************************************************************************/
 #ifndef POTENTIAL_H
 #define POTENTIAL_H
 

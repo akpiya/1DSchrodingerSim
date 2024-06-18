@@ -1,3 +1,5 @@
+// Tests are primarily for the eigenvector/eigenvalue solver
+// And the sorting function
 #include "../src/solver.h"
 #include <criterion/criterion.h>
 #include <math.h>

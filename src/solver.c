@@ -5,11 +5,10 @@
 #include "hashmap.h"
 #include "solver.h"
 #include "raylib.h"
+
 // Matrix is assumed to be tridiagonal.
 // Algorithm from "Numerical Recipes in C"
 //
-
-
 double pythag(const double a, const double b)
 {
     double absa = fabs(a), absb = fabs(b);
@@ -60,6 +59,7 @@ EigenPackage *init_eigenpackage(int num_evalues, int n, double *domain)
             pkg->efunctions[j][i].y = 0.0; 
         }
     }
+    pkg->displayable = 1;
 
     return pkg;
 }
@@ -180,6 +180,7 @@ double **create_identity(int n)
     return outer;
 }
 
+// Entry in the hashmap
 struct evalue {
     double value;
     int index;
@@ -235,21 +236,31 @@ double **sort_e_vectors(double *evalues, double **evectors, int n)
         hashmap_set(map, &(struct evalue) { .value=evalues[i], .index=i});
     }
 
+    
     qsort(evalues, n-1, sizeof(double), &compare_doubles);
+
     double **out = create_identity(n);
 
     for(int i = 0; i < n-1; i++) {
-        const struct evalue *eigv = hashmap_get(map, &(struct evalue){ .value=evalues[i]});
+        struct evalue *eigv = (struct evalue*) (hashmap_get(map, &(struct evalue){ .value=evalues[i]}));
+
         for(int j = 0; j < n-1; j++) {
             out[j][i] = evectors[j][eigv->index];
         }    
     }
     free_square_matrix(evectors, n-1);
+    hashmap_free(map);
     return out;
 }
 
-void solve_spectrum(Vector2 *potential, int n, int k, EigenPackage *epkg)
+void *solve_spectrum(void *pkg)
 {
+    struct SolverPkg *solverpkg = (struct SolverPkg*) (pkg);
+    Vector2 *potential = solverpkg->potential;
+    int n = solverpkg->n;
+    int k = solverpkg->num_eigenfunctions;
+    EigenPackage *epkg = solverpkg->epkg;
+
     // User switches the number of eigenvalues to display
     if (k != epkg->num_efunctions)
     {
@@ -272,10 +283,11 @@ void solve_spectrum(Vector2 *potential, int n, int k, EigenPackage *epkg)
     }
     //tqli() is only exception to size input as pure
     tqli(epkg->evalues, epkg->subdiagonal, epkg->z, epkg->n-1);
+
     epkg->z = sort_e_vectors(epkg->evalues, epkg->z, epkg->n);
 
     // extract wavefunctions from z
-    Vector2 **wavefunctions = malloc(sizeof(Vector2*)*k); 
+    Vector2 **wavefunctions = malloc(sizeof(Vector2*)*k); // MEMORY LEAK HERE, NEED TO CLEAN
     for(int j=0;j<k;j++) {
         wavefunctions[j] = malloc(sizeof(Vector2)*(n+1));
         double area = 0;
@@ -303,4 +315,6 @@ void solve_spectrum(Vector2 *potential, int n, int k, EigenPackage *epkg)
         }
     }
     epkg->efunctions = wavefunctions;
+    epkg->displayable = 1;
+    return (void *) 1;
 }

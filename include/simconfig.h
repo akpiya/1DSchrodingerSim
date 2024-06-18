@@ -1,8 +1,12 @@
+/******************************************************************************
+ * SimConfig contains simulation-specific data.
+******************************************************************************/
 #ifndef SIMCONFIG_H 
 #define SIMCONFIG_H
 
 #include "raylib.h"
 
+// Simulation-level data. Changeable throughout program execution
 typedef struct SimConfig
 {
     Camera2D camera;
@@ -22,6 +26,7 @@ typedef struct SimConfig
     double *domain;
 } SimConfig;
 
+// Runs once at program initialization
 SimConfig *init_simconfig(int discretization);
 
 #endif

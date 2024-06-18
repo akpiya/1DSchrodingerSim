@@ -1,8 +1,14 @@
+
+/******************************************************************************
+ * GuiConfig struct contains all information about the GUI aspect of the 
+ * simulation --that is the clickable buttons and the box surrounding them
+******************************************************************************/
 #ifndef GUICONFIG_H
 #define GUICONFIG_H
 
 #include "raylib.h"
 
+// Contains all gui-level data
 typedef struct GuiConfig
 {
     Rectangle gui_background;
@@ -20,12 +26,14 @@ typedef struct GuiConfig
     unsigned char selected_paint;
     unsigned char selected_text;
     unsigned char selected_evalue;
+    unsigned char on_text;
 
     Texture2D cursor_btn_texture;
     Texture2D paint_btn_texture;
 
 } GuiConfig;
 
+// Runs once during initialization
 GuiConfig *init_guiconfig();
 
 #endif

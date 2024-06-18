@@ -17,3 +17,9 @@ test:
 
 clean:
 	rm -f quantum test
+
+debug: src/quantumapp.c src/solver.c src/potential.c src/guiconfig.c src/simconfig.c
+	clang \
+	-framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL \
+	-Wall -std=c11 -Iinclude/ -L lib/ -lraylib -o bin/quantum -g \
+	src/quantumapp.c src/solver.c lib/hashmap.c src/potential.c src/guiconfig.c src/simconfig.c

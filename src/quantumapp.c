@@ -1,6 +1,11 @@
+/******************************************************************************
+ * Main game loop. Initializes all data-fields and runs simulation.
+******************************************************************************/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <complex.h>
+#include <pthread.h>
 
 #include "raylib.h"
 #include "rlgl.h"
@@ -13,13 +18,15 @@
 
 const int N = 500; // LENGTH. NUM POINTS WILL BE 501
 const Vector2 ORIGIN = {0.0, 0.0};
-const int NUM_COMPUTE_EVECTORS = 30;
-const int MAX_INPUT_CHARS = 3;
+const int NUM_COMPUTE_EVECTORS = 30; //
+const int MAX_INPUT_CHARS = 3; // Textbox input size
 
 const Color GUI_COLOR = (Color) {112, 128, 144, 150};
-const Color UNSELECTED = (Color) {229, 228, 226, 255};
-const Color SELECTED = (Color) {128, 128, 128, 255};
+const Color UNSELECTED_COLOR = (Color) {229, 228, 226, 255};
+const Color SELECTED_COLOR = (Color) {128, 128, 128, 255};
+// only 6 distinct colors to display eigenvalues. More functions cluter the plot.
 const Color EIG_COLORS[6] = {RED, GREEN, ORANGE, PURPLE, BROWN, BLUE};
+
 
 typedef struct WaveFunction
 {
@@ -27,8 +34,7 @@ typedef struct WaveFunction
     double complex *points;
 } WaveFunction;
 
-
-
+// Draws points.width and height are the lengths of the horizontal and vertical axes respectively
 void display_points(Vector2 *points, int n, Color color, int width, int height) 
 {
     Vector2 *scaled_points = malloc(sizeof(Vector2)*n);
@@ -50,6 +56,7 @@ void display_points(Vector2 *points, int n, Color color, int width, int height)
     }
 }
 
+// Draws all information from a GuiConfig
 void draw_gui(GuiConfig *config)
 {
     // Draw the translucent box;
@@ -65,25 +72,26 @@ void draw_gui(GuiConfig *config)
     Color textbox_color;
     Color evalue_btn_color;
 
+    // Sets the color of buttons depending on what is selected
     if (config->selected_cursor)
-        cursor_btn_color = SELECTED;
+        cursor_btn_color = SELECTED_COLOR;
     else
-        cursor_btn_color = UNSELECTED;
+        cursor_btn_color = UNSELECTED_COLOR;
 
     if (config->selected_paint)
-        paint_btn_color = SELECTED;
+        paint_btn_color = SELECTED_COLOR;
     else
-        paint_btn_color = UNSELECTED;
+        paint_btn_color = UNSELECTED_COLOR;
 
     if (config->selected_text)
-        textbox_color = SELECTED;
+        textbox_color = SELECTED_COLOR;
     else
-        textbox_color = UNSELECTED;
+        textbox_color = UNSELECTED_COLOR;
 
     if (config->selected_evalue)
-        evalue_btn_color = SELECTED;
+        evalue_btn_color = SELECTED_COLOR;
     else
-        evalue_btn_color = UNSELECTED;
+        evalue_btn_color = UNSELECTED_COLOR;
 
     // Draw the cursor box
     DrawRectangleRounded(
@@ -92,13 +100,6 @@ void draw_gui(GuiConfig *config)
         5,
         cursor_btn_color
     );
-    // NPatchInfo btn_npatch_info = {()}
-    // DrawTextureNPatch(
-    //     config->cursor_btn_texture,
-    //     config->cursor_btn,
-    //     (Vector2) {0.0, 0.0},
-    //     RED
-    // );
 
     // Draw the paint box
     DrawRectangleRounded(
@@ -123,6 +124,30 @@ void draw_gui(GuiConfig *config)
         5,
         evalue_btn_color
     );
+
+    // Draw button images
+    DrawTexture(
+        config->cursor_btn_texture,
+        config->cursor_btn.x+5*config->button_offset,
+        config->cursor_btn.y,
+        WHITE
+    );
+
+    DrawTexture(
+        config->paint_btn_texture,
+        config->paint_btn.x+5*config->button_offset,
+        config->cursor_btn.y,
+        WHITE
+    );
+
+    // Draw text on the button
+    DrawText(
+        TextFormat("Find Eigenfunctions"),
+        config->efunc_btn.x + 10,
+        config->efunc_btn.y + config->efunc_btn.height / 3,
+        14,
+        BLACK 
+    );
 }
 
 void clear_btn_selections(GuiConfig *config)
@@ -134,38 +159,32 @@ void clear_btn_selections(GuiConfig *config)
 }
 
 
-//------------------------------------------------------------------------------------
 // Program main entry point
-//------------------------------------------------------------------------------------
 int main()
 {
     // Initialization
-    //--------------------------------------------------------------------------------------
+    // These constants are set regardless of system
+    // Windows cannot be resized
     const int screen_width = 1000;
     const int screen_height = 700;
 
-    InitWindow(screen_width, screen_height, "1D Schrodinger Equation Solver");
-    
+    InitWindow(screen_width, screen_height, "Schrodinger Sim");
 
     SimConfig *config = init_simconfig(N);
     GuiConfig *gui_config = init_guiconfig();
     EigenPackage *epkg = init_eigenpackage(config->num_eigenfunctions, N, config->domain);
-    solve_spectrum(
-        config->potential,
-        config->n,
-        config->num_eigenfunctions,
-        epkg
-    );
+    struct SolverPkg *solverpkg = malloc(sizeof(struct SolverPkg));
 
-    SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
+    pthread_t solver_thread_id;
+
+    SetTargetFPS(60);
 
     // Main game loop
-    while (!WindowShouldClose())        // Detect window close button or ESC key
+    while (!WindowShouldClose())
     {
-        DrawFPS(0, 0);
         Vector2 mouse_point = GetMousePosition();
 
+        // right-click panning behavior
         if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
         {
             Vector2 delta = GetMouseDelta();
@@ -176,6 +195,8 @@ int main()
         Vector2 cursor_pos = GetScreenToWorld2D(GetMousePosition(), config->camera);
         cursor_pos.y *= -1;
         
+        // Check whether the cursor is hovering over a specific button and color it accordingly.
+        // Further check if the button is actually clicked
         if (CheckCollisionPointRec(mouse_point, gui_config->cursor_btn))
         {
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
@@ -205,16 +226,22 @@ int main()
         }
         else if (CheckCollisionPointRec(mouse_point, gui_config->efunc_btn))
         {
+            // all the logic for recomputing the eigenvalues once the potential has been modified
             if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
             {
                 clear_btn_selections(gui_config);
                 gui_config->selected_evalue = 1; 
-                solve_spectrum(
-                    config->potential,
-                    config->n,
-                    config->num_eigenfunctions,
-                    epkg
-                );
+
+                if (epkg->displayable)
+                {
+                    epkg->displayable = 0;
+                    solverpkg->epkg = epkg;
+                    solverpkg->n = config->n;
+                    solverpkg->num_eigenfunctions = config->num_eigenfunctions;
+                    solverpkg->potential = config->potential;
+
+                    pthread_create(&solver_thread_id, NULL, &solve_spectrum, (void *)(solverpkg));
+                }
             }
             else
             {
@@ -254,7 +281,7 @@ int main()
 
                 int index_low, index_high;
                 double start, end;
-                int smoothing = (int) ((15/7.0) * 1 / config->camera.zoom);
+                int smoothing = (int) ((2.25) * 1 / config->camera.zoom);
 
                 if (index < index2)
                 {
@@ -308,6 +335,8 @@ int main()
             config->camera.zoom = Clamp(config->camera.zoom*scaleFactor, 0.125f, 64.0f);
         }
 
+        
+
 
         // Draw
         //----------------------------------------------------------------------------------
@@ -323,8 +352,12 @@ int main()
             rlPopMatrix();
         display_points(config->potential, N+1, BLACK, config->horizontal_axis, config->vertical_axis);
         // displaying desired potential
-        for(int i=0;i<epkg->num_efunctions;i++) {
-            display_points(epkg->efunctions[i], N, EIG_COLORS[i%6], config->horizontal_axis, config->vertical_axis);
+        if (epkg->displayable)
+        {
+            for(int i=0;i<epkg->num_efunctions;i++)
+            {
+                display_points(epkg->efunctions[i], N, EIG_COLORS[i%6], config->horizontal_axis, config->vertical_axis);
+            }
         }
 
         // display resizeable axes
@@ -378,6 +411,7 @@ int main()
         EndMode2D();
 
         draw_gui(gui_config);
+        
         EndDrawing();
     }
 
