@@ -74,12 +74,16 @@ GuiConfig *init_guiconfig()
         box_width,
         config->gui_height - 2*config->button_offset
     };
+    config->cursor_btn_img = LoadImage("assets/cursor.png");
+    config->paint_btn_img = LoadImage("assets/paint.png");
+    config->left_btn_img = LoadImage("assets/left.png");
+    config->right_btn_img = LoadImage("assets/right.png");
     
     // Loading textures that are overlayed on top of the rectangles.
-    config->cursor_btn_texture = LoadTextureFromImage(LoadImage("assets/cursor.png"));
-    config->paint_btn_texture = LoadTextureFromImage(LoadImage("assets/paint.png"));
-    config->left_btn_texture = LoadTextureFromImage(LoadImage("assets/left.png"));
-    config->right_btn_texture = LoadTextureFromImage(LoadImage("assets/right.png"));
+    config->cursor_btn_texture = LoadTextureFromImage(config->cursor_btn_img);
+    config->paint_btn_texture = LoadTextureFromImage(config->paint_btn_img);
+    config->left_btn_texture = LoadTextureFromImage(config->left_btn_img);
+    config->right_btn_texture = LoadTextureFromImage(config->right_btn_img);
 
     config->cursor_btn_texture.height = config->cursor_btn.height;
     config->cursor_btn_texture.width = config->cursor_btn.width-10*config->button_offset; 
@@ -94,4 +98,20 @@ GuiConfig *init_guiconfig()
     config->right_btn_texture.width = config->left_btn.width - 10*config->button_offset;
 
     return config; 
+}
+
+void free_guiconfig(GuiConfig *config)
+{
+
+    UnloadTexture(config->cursor_btn_texture);
+    UnloadTexture(config->paint_btn_texture);
+    UnloadTexture(config->left_btn_texture);
+    UnloadTexture(config->right_btn_texture);
+
+    UnloadImage(config->cursor_btn_img);
+    UnloadImage(config->paint_btn_img);
+    UnloadImage(config->left_btn_img);
+    UnloadImage(config->right_btn_img);
+    
+    free(config);
 }

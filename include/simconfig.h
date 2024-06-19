@@ -29,4 +29,6 @@ typedef struct SimConfig
 // Runs once at program initialization
 SimConfig *init_simconfig(int discretization);
 
+void free_simconfig(SimConfig *config);
+
 #endif

@@ -60,8 +60,18 @@ EigenPackage *init_eigenpackage(int num_evalues, int n, double *domain)
         }
     }
     pkg->displayable = 1;
-
     return pkg;
+}
+
+void free_eigenpackage(EigenPackage *pkg)
+{
+    for(int i=0; i<pkg->num_efunctions;i++)
+        free(pkg->efunctions[i]);
+    free(pkg->efunctions);
+    free(pkg->subdiagonal);
+    free(pkg->evalues);
+    free_square_matrix(pkg->z, pkg->n-1);
+    free(pkg);
 }
 
 double *create_domain(int l_bound, int r_bound, int n)
@@ -239,7 +249,7 @@ double **sort_e_vectors(double *evalues, double **evectors, int n)
     
     qsort(evalues, n-1, sizeof(double), &compare_doubles);
 
-    double **out = create_identity(n);
+    double **out = create_identity(n-1);
 
     for(int i = 0; i < n-1; i++) {
         struct evalue *eigv = (struct evalue*) (hashmap_get(map, &(struct evalue){ .value=evalues[i]}));
@@ -255,17 +265,13 @@ double **sort_e_vectors(double *evalues, double **evectors, int n)
 
 void *solve_spectrum(void *pkg)
 {
+    // performance isn't that vital for this function
+    
     struct SolverPkg *solverpkg = (struct SolverPkg*) (pkg);
     Vector2 *potential = solverpkg->potential;
     int n = solverpkg->n;
     int k = solverpkg->num_eigenfunctions;
     EigenPackage *epkg = solverpkg->epkg;
-
-    // User switches the number of eigenvalues to display
-    if (k != epkg->num_efunctions)
-    {
-        epkg->num_efunctions = k;
-    }
 
     double dl = potential[1].x - potential[0].x;
 
@@ -286,8 +292,14 @@ void *solve_spectrum(void *pkg)
 
     epkg->z = sort_e_vectors(epkg->evalues, epkg->z, epkg->n);
 
+    for (int i=0; i<epkg->num_efunctions; i++)
+    {
+        free(epkg->efunctions[i]);
+    }    
+    free(epkg->efunctions);
+
     // extract wavefunctions from z
-    Vector2 **wavefunctions = malloc(sizeof(Vector2*)*k); // MEMORY LEAK HERE, NEED TO CLEAN
+    Vector2 **wavefunctions = malloc(sizeof(Vector2*)*k); 
     for(int j=0;j<k;j++) {
         wavefunctions[j] = malloc(sizeof(Vector2)*(n+1));
         double area = 0;
@@ -314,6 +326,7 @@ void *solve_spectrum(void *pkg)
             wavefunctions[j][i].y = wavefunctions[j][i].y * wavefunctions[j][i].y;
         }
     }
+    epkg->num_efunctions = k;
     epkg->efunctions = wavefunctions;
     epkg->displayable = 1;
     return (void *) 1;

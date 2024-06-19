@@ -53,6 +53,7 @@ void display_points(Vector2 *points, int n, Color color, int width, int height)
     {
         DrawLineEx(scaled_points[i], scaled_points[i+1], 2.5, color);
     }
+    free(scaled_points);
 }
 
 // Draws all information from a GuiConfig
@@ -488,7 +489,11 @@ int main()
         
         EndDrawing();
     }
-
+    // Deallocate memory. Ig it doesn't really matter here
+    free(solverpkg);
+    free_eigenpackage(epkg);
+    free_simconfig(config);
+    free_guiconfig(gui_config);
     CloseWindow();
     return 0;
 }

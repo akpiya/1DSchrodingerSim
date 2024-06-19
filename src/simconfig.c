@@ -21,3 +21,9 @@ SimConfig *init_simconfig(int discretization)
     config->potential = apply_potential(config->domain, config->n, &quadratic); // potential has size n+1
     return config;
 }
+void free_simconfig(SimConfig *config)
+{
+    free(config->domain);
+    free(config->potential);
+    free(config);
+}

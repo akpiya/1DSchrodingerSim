@@ -30,8 +30,10 @@ typedef struct GuiConfig
     unsigned char selected_right;
     unsigned char selected_evalue;
     
-    // char textbox_input[MAX_INPUT_CHARS+1];
-    // char textbox_char_count;
+    Image cursor_btn_img;
+    Image paint_btn_img;
+    Image left_btn_img;
+    Image right_btn_img;
 
     Texture2D cursor_btn_texture;
     Texture2D paint_btn_texture;
@@ -42,5 +44,8 @@ typedef struct GuiConfig
 
 // Runs once during initialization
 GuiConfig *init_guiconfig();
+
+// Runs once at the end
+void free_guiconfig(GuiConfig *config);
 
 #endif

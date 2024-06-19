@@ -36,6 +36,9 @@ struct SolverPkg
 // Called at the beginning of the run. New eigenpackages overwrite the one initialized here.
 EigenPackage *init_eigenpackage(int num_evalues, int n, double *domain);
 
+// Called at the end
+void free_eigenpackage(EigenPackage *pkg);
+
 // Create nxn identity matrix
 double **create_identity(int n);
 
