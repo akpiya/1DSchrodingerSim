@@ -18,11 +18,12 @@
 
 const int N = 500; // LENGTH. NUM POINTS WILL BE 501
 const Vector2 ORIGIN = {0.0, 0.0};
-const int NUM_COMPUTE_EVECTORS = 30; //
+const int NUM_COMPUTE_EVECTORS = 50; // 
 
 const Color GUI_COLOR = (Color) {112, 128, 144, 150};
 const Color UNSELECTED_COLOR = (Color) {229, 228, 226, 255};
 const Color SELECTED_COLOR = (Color) {128, 128, 128, 255};
+
 // only 6 distinct colors to display eigenvalues. More functions cluter the plot.
 const Color EIG_COLORS[6] = {RED, GREEN, ORANGE, PURPLE, BROWN, BLUE};
 

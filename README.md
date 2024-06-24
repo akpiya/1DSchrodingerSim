@@ -3,18 +3,23 @@ WIP
 
 SchrodingerSim is a application to simulate quantum wave function evolution for any time-independent potential that is defined within a well. That is, all wavefunctions have boundary conditions that $\psi(x=0) = \psi(x=L) = 0$. The application displays the evolution of the probability wavefunction.
 
+## Demo
+Here is a demo of the eigenstate solver and interactive gui to display the eigenstates for arbitrary potential functions.
+
+![vid](assets/demo.mov)
 
 Below are some sample images. The black line represents the potential while the colored lines are some of the corresponding eigenstates.
 
 ![Quad](assets/quadratic.png)
-*First 3 eigenstates of a quadratic potential*
+*First 3 eigenstates squared ($|\psi|^2$) of a quadratic potential*
 
 ![User](assets/usr-def.png)
-*First 3 eiegenstates of a user-specified, drawn potential. Each eigenstate is most likely to be found in some potential well*
+*First 3 eiegenstates squared ($|{\psi}|$) of a user-specified, drawn potential. Each eigenstate is most likely to be found in some potential well*
 ## Eigenstate Solver
-Rather than some finite difference method, SchrodingerSim solves the eigenstates for a specific potential and uses those to find the time evolution of a general state.
+Rather than some finite difference method, SchrodingerSim solves the eigenstates for a specific potential and uses those to find the time evolution of a general state. 
 
-## Demo
+[Demo](assets/)
+
 
 ## Installation
 
