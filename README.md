@@ -6,7 +6,7 @@ SchrodingerSim is a application to simulate quantum wave function evolution for 
 ## Demo
 Here is a demo of the eigenstate solver and interactive gui to display the eigenstates for arbitrary potential functions.
 
-![vid](assets/demo.mov)
+https://github.com/akpiya/1DSchrodingerSim/assets/48157425/8709b22b-44e0-422c-8fa1-04d10f16d422
 
 Below are some sample images. The black line represents the potential while the colored lines are some of the corresponding eigenstates.
 
