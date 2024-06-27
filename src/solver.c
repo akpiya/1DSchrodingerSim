@@ -44,7 +44,8 @@ EigenPackage *init_eigenpackage(int num_evalues, int n, double *domain)
 
     pkg->efunctions = malloc(sizeof(Vector2*)*num_evalues);
 
-    for(int j=0;j<num_evalues;j++) {
+    for(int j=0;j<num_evalues;j++)
+    {
         pkg->efunctions[j] = malloc(sizeof(Vector2)*(n+1));
 
         // Applying the boundary conditions
@@ -54,7 +55,8 @@ EigenPackage *init_eigenpackage(int num_evalues, int n, double *domain)
         pkg->efunctions[j][n].x = domain[n];
         pkg->efunctions[j][n].y = 0.0;
 
-        for(int i=1;i<n-1;i++) {
+        for(int i=1;i<n-1;i++)
+        {
             pkg->efunctions[j][i].x = domain[i];
             pkg->efunctions[j][i].y = 0.0; 
         }
@@ -88,13 +90,15 @@ double *create_domain(int l_bound, int r_bound, int n)
 Vector2* apply_potential(double *domain, int n, double (*f) (double)) 
 {
     Vector2 *points = malloc(sizeof(Vector2)*(n+1));
-    for (int i=0;i<n+1;i++) {
+    for (int i=0;i<n+1;i++)
+    {
         points[i].x = domain[i];
         points[i].y = (*f)(domain[i]);
     }
     return points;
 }
 
+// From "Numerical recipes in C"
 void tqli(double *d, double *e, double **z, int n)
 {
     // `diagonal`: n-length array representing the diagonal
@@ -191,16 +195,19 @@ double **create_identity(int n)
 }
 
 // Entry in the hashmap
-struct evalue {
+struct evalue
+{
     double value;
     int index;
 };
+
 
 uint64_t evalue_hash(const void *item, uint64_t seed0, uint64_t seed1)
 {
     struct evalue *ev = (struct evalue*) item;
     return hashmap_sip(&(ev->value), 1, seed0, seed1);
 }
+
 
 int evalue_compare(const void *a, const void *b, void *udata)
 {
@@ -231,7 +238,8 @@ int compare_doubles(const void *a, const void *b)
 
 void free_square_matrix(double **z, int n)
 {
-    for(int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++)
+    {
         free(z[i]);
     }
     free(z);
@@ -242,7 +250,8 @@ double **sort_e_vectors(double *evalues, double **evectors, int n)
     struct hashmap *map = hashmap_new(sizeof(struct evalue), 0, 0, 0,
                                 &evalue_hash, &evalue_compare, NULL, NULL);
 
-    for(int i = 0; i < n-1; i++) {
+    for(int i = 0; i < n-1; i++)
+    {
         hashmap_set(map, &(struct evalue) { .value=evalues[i], .index=i});
     }
 
@@ -251,13 +260,13 @@ double **sort_e_vectors(double *evalues, double **evectors, int n)
 
     double **out = create_identity(n-1);
 
-    for(int i = 0; i < n-1; i++) {
+    for(int i = 0; i < n-1; i++)
+    {
         struct evalue *eigv = (struct evalue*) (hashmap_get(map, &(struct evalue){ .value=evalues[i]}));
-
-        for(int j = 0; j < n-1; j++) {
+        for(int j = 0; j < n-1; j++)
             out[j][i] = evectors[j][eigv->index];
-        }    
     }
+
     free_square_matrix(evectors, n-1);
     hashmap_free(map);
     return out;
@@ -293,14 +302,14 @@ void *solve_spectrum(void *pkg)
     epkg->z = sort_e_vectors(epkg->evalues, epkg->z, epkg->n);
 
     for (int i=0; i<epkg->num_efunctions; i++)
-    {
         free(epkg->efunctions[i]);
-    }    
+
     free(epkg->efunctions);
 
     // extract wavefunctions from z
     Vector2 **wavefunctions = malloc(sizeof(Vector2*)*k); 
-    for(int j=0;j<k;j++) {
+    for(int j=0;j<k;j++)
+    {
         wavefunctions[j] = malloc(sizeof(Vector2)*(n+1));
         double area = 0;
 
@@ -311,18 +320,21 @@ void *solve_spectrum(void *pkg)
         wavefunctions[j][n].x = potential[n].x;
         wavefunctions[j][n].y = 0.0;
 
-        for(int i=1;i<n;i++) {
+        for(int i=1;i<n;i++)
+        {
             wavefunctions[j][i].x = potential[i].x;
             wavefunctions[j][i].y = epkg->z[i-1][j];
             area += epkg->z[i-1][j] * epkg->z[i-1][j];
         }
         area *= dl;
         // normalize the wavefunction
-        for(int i=0;i<n+1;i++) {
+        for(int i=0;i<n+1;i++)
+        {
             wavefunctions[j][i].y /= sqrt(area);
         }
 
-        for(int i=0;i<n+1;i++) {
+        for(int i=0;i<n+1;i++)
+        {
             wavefunctions[j][i].y = wavefunctions[j][i].y * wavefunctions[j][i].y;
         }
     }

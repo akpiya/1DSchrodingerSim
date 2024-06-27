@@ -39,7 +39,8 @@ void display_points(Vector2 *points, int n, Color color, int width, int height)
 {
     Vector2 *scaled_points = malloc(sizeof(Vector2)*n);
     double max_val = 1.0;
-    for (int i=0;i<n;i++) {
+    for (int i=0;i<n;i++)
+    {
         if (points[i].y > max_val)
             max_val = points[i].y;
     }
@@ -344,7 +345,7 @@ int main()
         {
             Vector2 mouse_world = GetScreenToWorld2D(mouse_point, config->camera);
             if (0 < mouse_world.x && mouse_world.x < config->horizontal_axis
-             && 0 < -1*mouse_world.y && -1*mouse_world.y < config->vertical_axis)
+                && 0 < -1*mouse_world.y && -1*mouse_world.y < config->vertical_axis)
             {
                 Vector2 delta = GetMouseDelta();
                 // delta = GetScreenToWorld2D(delta, config->camera);
@@ -379,9 +380,7 @@ int main()
                 double diff = (end - start) / (index_high - index_low);                
 
                 for (int i=index_low; i <= index_high; i++)
-                {
                     config->potential[i].y = (start + (i-index_low) * diff);
-                }
             }
         }
         else
@@ -431,9 +430,7 @@ int main()
         if (epkg->displayable)
         {
             for(int i=0;i<epkg->num_efunctions;i++)
-            {
                 display_points(epkg->efunctions[i], N, EIG_COLORS[i%6], config->horizontal_axis, config->vertical_axis);
-            }
         }
 
         // display resizeable axes
