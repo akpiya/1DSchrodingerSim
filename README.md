@@ -2,23 +2,6 @@
 
 SchrodingerSim is a application to simulate quantum wave function evolution for any time-independent potential that is defined within a well. That is, all wavefunctions have boundary conditions that $\psi(x=0) = \psi(x=L) = 0$. The application displays the evolution of the probability wavefunction.
 
-## Demo
-Here is a demo of the eigenstate solver and interactive gui to display the eigenstates for arbitrary potential functions.
-
-https://github.com/akpiya/1DSchrodingerSim/assets/48157425/8709b22b-44e0-422c-8fa1-04d10f16d422
-
-Below are some sample images. The black line represents the potential while the colored lines are some of the corresponding eigenstates.
-
-![Quad](assets/quadratic.png)
-*First 3 eigenstates squared ($|\psi|^2$) of a quadratic potential*
-
-![User](assets/usr-def.png)
-*First 3 eiegenstates squared ($|{\psi}|$) of a user-specified, drawn potential. Each eigenstate is most likely to be found in some potential well*
-## Eigenstate Solver
-Rather than some finite difference method, SchrodingerSim solves the eigenstates for a specific potential and uses those to find the time evolution of a general state. 
-
-[Demo](assets/)
-
 ## Installation
 
 SchrodingerSim is built on clang 15.0.0. Make sure your system has clang and is accessible through the path. There is no support at the moment for Windows systems.
@@ -41,6 +24,19 @@ After the steps above, simply run `make run` in the root directory.
 |Right-Click + Drag | Pan Camera |
 |Left-Click | Select/Draw |
 |Scroll Wheel | Zoom |
+
+## Demo
+Here is a demo of the eigenstate solver and interactive gui to display the eigenstates for arbitrary potential functions.
+
+https://github.com/akpiya/1DSchrodingerSim/assets/48157425/8709b22b-44e0-422c-8fa1-04d10f16d422
+
+Below are some sample images. The black line represents the potential while the colored lines are some of the corresponding eigenstates.
+
+![Quad](assets/quadratic.png)
+*First 3 eigenstates squared of a quadratic potential*
+
+![User](assets/usr-def.png)
+*First 3 eiegenstates squared of a user-specified, drawn potential. Each eigenstate is most likely to be found in some potential well*
 
 ## Authors
 Akash Piya
