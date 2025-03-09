@@ -8,7 +8,7 @@ CC := clang
 
 # Common flags
 CFLAGS := -Wall -std=c11 -Iinclude/ -Iinclude_ext/ -Ilib/raylib/src
-LFLAGS := -Llib/raylib/src -lraylib -lGL -lGLU -lglut -lm -lpthread -ldl -lrt
+LFLAGS := -Llib/raylib/src -lraylib -lpthread 
 
 # OS-specific settings
 ifeq ($(OS), Darwin)  # macOS
@@ -16,7 +16,7 @@ ifeq ($(OS), Darwin)  # macOS
 endif
 
 ifeq ($(OS), Linux)
-    LFLAGS += -lGL -lGLU -lglut -lm
+    LFLAGS += -lGL -lGLU -lglut -lm -ldl -lrt
 endif
 
 ifeq ($(OS), Windows_NT)  # Windows (Windows_NT is used in Make) wait wtf why would bash commands work here then
@@ -30,6 +30,13 @@ lib/raylib/src/libraylib.a:
 
 # Build main program (depends on Raylib)
 
+# Define OS-specific flags
+ifeq ($(shell uname), Linux)
+  LINUX_FLAGS = -lGL -lGLU -lglut -lm -lpthread -ldl -lrt -lraylib
+else
+  LINUX_FLAGS = 
+endif
+
 build: lib/raylib/src/libraylib.a
 	mkdir -p bin
 	$(CC) $(CFLAGS) $(LFLAGS) \
@@ -40,7 +47,8 @@ build: lib/raylib/src/libraylib.a
 		src/potential.c \
 		src/guiconfig.c \
 		src/simconfig.c \
-		-lGL -lGLU -lglut -lm -lpthread -ldl -lrt -lraylib
+		$(LINUX_FLAGS)
+		
 
 
 run: build
