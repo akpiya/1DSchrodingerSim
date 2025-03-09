@@ -1,10 +1,55 @@
 .PHONY: clean
 
-build: src/quantumapp.c src/solver.c src/potential.c src/guiconfig.c src/simconfig.c
-	clang \
-	-framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL \
-	-Wall -std=c11 -Iinclude/ -L lib/ -lraylib -o bin/quantum \
-	src/quantumapp.c src/solver.c lib/hashmap.c src/potential.c src/guiconfig.c src/simconfig.c
+# Detect OS
+OS := $(shell uname -s)
+
+# Default compiler
+CC := clang
+
+# Common flags
+CFLAGS := -Wall -std=c11 -Iinclude/ -Iinclude_ext/ -Ilib/raylib/src
+LFLAGS := -Llib/raylib/src -lraylib -lpthread 
+
+# OS-specific settings
+ifeq ($(OS), Darwin)  # macOS
+    LFLAGS += -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+endif
+
+ifeq ($(OS), Linux)
+    LFLAGS += -lGL -lGLU -lglut -lm -ldl -lrt
+endif
+
+ifeq ($(OS), Windows_NT)  # Windows (Windows_NT is used in Make) wait wtf why would bash commands work here then
+    CC := gcc  # Use gcc instead of clang on Windows
+    LFLAGS += -lopengl32 -lgdi32 -lwinmm
+endif
+
+# raylib Build
+lib/raylib/src/libraylib.a:
+	$(MAKE) -C lib/raylib/src RAYLIB_LIBTYPE=STATIC
+
+# Build main program (depends on Raylib)
+
+# Define OS-specific flags
+ifeq ($(shell uname), Linux)
+  LINUX_FLAGS = -lGL -lGLU -lglut -lm -lpthread -ldl -lrt -lraylib
+else
+  LINUX_FLAGS = 
+endif
+
+build: lib/raylib/src/libraylib.a
+	mkdir -p bin
+	$(CC) $(CFLAGS) $(LFLAGS) \
+		-o bin/quantum \
+		src/quantumapp.c \
+		src/solver.c \
+		lib/hashmap.c \
+		src/potential.c \
+		src/guiconfig.c \
+		src/simconfig.c \
+		$(LINUX_FLAGS)
+		
+
 
 run: build
 	bin/quantum
@@ -16,7 +61,7 @@ test:
 	clang -Wall src/solver.c tests/test.c src/hashmap.c -o bin/test -lm -lcriterion
 
 clean:
-	rm -f quantum test
+	rm -rf bin lib/raylib/src/libraylib.a
 
 debug: src/quantumapp.c src/solver.c src/potential.c src/guiconfig.c src/simconfig.c
 	clang \
