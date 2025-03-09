@@ -10,7 +10,7 @@ SchrodingerSim heavily depends on [Raylib](https://github.com/raysan5/raylib) fo
 
 ### To Run
 
-Clone this repository *recursively* with `git clone -recursive {AKASH INSERT UR SHI HERE}` (raylib is used as a submodule here).
+Clone this repository *recursively* with `git clone --recursive https://github.com/akpiya/1DSchrodingerSim.git` (raylib is used as a submodule here).
 
 ## Usage & Controls
 
