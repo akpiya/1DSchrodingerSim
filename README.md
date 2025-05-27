@@ -1,6 +1,6 @@
 # SchrodingerSim
 
-SchrodingerSim is a application to simulate quantum wave function evolution for any time-independent potential that is defined within a well. That is, all wavefunctions have boundary conditions that $\psi(x=0) = \psi(x=L) = 0$. The application displays the evolution of the probability wavefunction.
+SchrodingerSim is a application to solve for eigenfunctions of any time-independent potential defined within a well. That is, all wavefunctions have boundary conditions that $\psi(x=0) = \psi(x=L) = 0$.
 
 ## Installation
 
